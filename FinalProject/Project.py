@@ -19,9 +19,10 @@ def readDFAtable(f):
 	return (allState,  alphabet, startingState, EpsDfaTable, acceptedState)
 
 def prob1():
+	#input
 	print 'Start to solve 1:';
 	f = open('input1.txt', 'r');
-	allState, alphabet, startingState, EpsDfaTable, acceptedState = readDFAtable(f);
+	allState, alphabet, startingState, dfaTable, acceptedState = readDFAtable(f);
 	str = f.readline();
 	f.close();
 
@@ -75,7 +76,8 @@ def readEpsDFAtable(f):
 	return (allState, alphabet, startingState, EpsDfaTable, acceptedState);
 
 def prob2():
-	print 'Start to solve 1:';
+	#input
+	print 'Start to solve 2:';
 	f = open('input2.txt', 'r');
 	allState,  alphabet, startingState, EpsDfaTable, acceptedState = readEpsDFAtable(f);
 	f.close();
@@ -140,6 +142,69 @@ def prob2():
 		g.write(str(id[frozenset(st)]) + ': ' + str(st) + '\n');
 	g.close();
 
-"""A multi-producer, multi-consumer queue."""
+def prob5():
+	#input
+	print 'Start to solve 5:';
+	f = open('input5.txt', 'r');
+	allState, alphabet, startingState, dfaTable, acceptedState = readDFAtable(f);
+	f.close();
+
+	#init
+	newAllState = [];
+	newAlphabet = [];
+	newDfaTable = [];
+	newAcceptedState = [];
+
+	#remove unreachable node
+	isReach = dict();
+	for u in allState:
+		isReach[u] = 0;
+	isReach = set([startingState]);
+	q = deque([startingState]);
+	while len(q) > 0:
+		u = q.pop();
+		for label in alphabet:
+			if EpsDfaTable[u, label] not in isReach == 0:
+				q.append(dfaTable[u, label]);
+				isReach.add(dfaTable[u, label])
+	allState = [u for u in isReach];
+	acceptedState = [u for u in acceptedState if u in isReach]
+	#
+
+	tabFil = dict(((u, v), 0) for u in allState for v in allState);
+	for u in allState:
+		if u not in acceptedState:
+			for v in acceptedState:
+				tabFil[u, v] = 1
+	#---------------------------
+	while True:
+		ok = False;
+		for u in allState:
+			for v in allState:
+				if u != v:
+					for label in alphabet:
+						if tabFil[dfaTable[u, label], dfaTable[v, label]] == 1:
+							tabFil[u, v] = 1;
+							ok = True;
+							break;
+		if (ok == False):
+			break;
+
+	id = dict();
+	for i in range(len(allState)):
+		if allState[i] not in id.keys():
+			id[allState[i]] = len(id);
+			for j in range(i+1, allState):
+				if tabFil[allState[i], allState[j]] == 0:
+					id[allState[j]] = id[allState[i]];
+	for u in allState:
+		for label in alphabet:
+			newDfaTable[id[u], label] = id[dfaTable[u, label]];
+	
+	newStartingState = id[startingState];
+	newAlphabet = alphabet
+	newAcceptedState = np.unique([id[u] for u in acceptedState]).tolist();
+	newAllState = np.unique([id[u] for u in allState]).tolist();
+	#newAcceptedState = [u for u in newAcceptedState]
 
 prob1();
