@@ -5,24 +5,27 @@ from collections import deque
 def readDFAtable(f):
 	n, m, k = map(int, f.readline().split());
 	alphabet = f.readline().split();
-	acceptedState = map(int, f.readline().split());
+	allState = f.readline().split();
+	startingState = f.readline().split()[0];
+	acceptedState = f.readline().split();
+
 	dfaTable = dict();
-
 	for i in range(n):
-		line = map(int, f.readline().split());
+		u = f.readline().split()[0];
+		line = f.readline().split();
 		for j in range(m):
-			dfaTable[i, alphabet[j]] = line[j];
+			dfaTable[u, alphabet[j]] = line[j];
 
-	return (dfaTable, alphabet, acceptedState)
+	return (allState,  alphabet, startingState, EpsDfaTable, acceptedState)
 
 def prob1():
 	print 'Start to solve 1:';
 	f = open('input1.txt', 'r');
-	dfaTable, alphabet, acceptedState = readDFAtable(f);
+	allState, alphabet, startingState, EpsDfaTable, acceptedState = readDFAtable(f);
 	str = f.readline();
 	f.close();
 
-	currentState = 0;
+	currentState = startingState;
 	for ch in str:
 		if (currentState, ch) in dfaTable.keys():
 			currentState = dfaTable[currentState, ch];
@@ -38,100 +41,105 @@ def prob1():
 	g.close();
 
 def getClosure(EpsDfaTable, start, label):
-	ret = [start];
-	q = deque(start);
-	qsize = 1;
+	ret = set([start]);
+	q = deque([start]);
 
-	while qsize > 0:
+	while len(q) > 0:
 		u = q.pop();
-		n = n - 1;
-		for v in EpsDfaTable[start, label]:
+
+		for v in EpsDfaTable[u, label]:
 			if v not in ret:
 				q.append(v);
-				ret.append(v);
-				n = n + 1;
+				ret.add(v);
+
 
 	return ret;
 
 def readEpsDFAtable(f):
 	n, m, k = map(int, f.readline().split());
 	alphabet = f.readline().split();
-	acceptedState = map(int, f.readline().split());
+	alphabet.append('eps');
+	allState = f.readline().split();
+	startingState = f.readline().split()[0];
+	acceptedState = f.readline().split();
+
 	EpsDfaTable = dict();
-
 	for i in range(n):
-		for j in range(m):
-			line = map(int, f.readline().split());
-			EpsDfaTable[i, alphabet[j]] = [];
-			for k in range(1, line[0]+1):
-				EpsDfaTable[i, alphabet[j]].append(line[k]);
+		u = f.readline().split()[0];
+		for j in range(m+1):
+			line = f.readline().split();
+			EpsDfaTable[u, alphabet[j]] = [];
+			for k in range(1, int(line[0])+1):
+				EpsDfaTable[u, alphabet[j]].append(line[k]);
 
-	return (EpsDfaTable, alphabet, acceptedState)
+	return (allState, alphabet, startingState, EpsDfaTable, acceptedState);
 
 def prob2():
+	print 'Start to solve 1:';
 	f = open('input2.txt', 'r');
-	EpsDfaTable, alphabet, acceptedState = readEpsDFAtable(f);
+	allState,  alphabet, startingState, EpsDfaTable, acceptedState = readEpsDFAtable(f);
 	f.close();
 
-	start = getClosure(0);
+	start = getClosure(EpsDfaTable, startingState, 'eps');
 	id = dict();
-	id[start] = 0;
+	id[frozenset(start)] = 0;
 	dfaState = [start];
 	maxId = 1;
 
 	dfaTable = dict();
 	q = deque();
-	q.append(state[0]);
-	n = 1;
-	while n > 0:
+	q.append(start);
+	while len(q) > 0:
 		u = q.pop();
-		n = n - 1;
-
 		for label in alphabet:
-			v = [];
-			temp = []
+			if (label == 'eps'):
+				break
+
+			v = set();
+			temp = set()
 			for ne in u:
-				temp.extend(EpsDfaTable[ne, label]);
-			temp = np.unique(temp).tolist();
+				temp = temp.union(set(EpsDfaTable[ne, label]));
+			#temp = np.unique(temp).tolist();
 
 			for x in temp:
-				temp1 = getClosure(EpsDfaTable, x);
-				v.extend(temp1);
+				temp1 = getClosure(EpsDfaTable, x, 'eps');
+				v = v.union(temp1);
 
-			v = np.unique(v).tolist();
+			#v = np.unique(v).tolist();
 
-			if (v not in id.keys()):
-				n = n + 1;
+			if (len(v) > 0 and frozenset(v) not in id.keys()):
+				id[frozenset(v)] = len(dfaState);
 				q.append(v);
-				
 				dfaState.append(v);
 
-				id[v] = maxId;
-				maxId += 1;
-			
-			dfaTable[id[u], label] = id[v];
+			dfaTable[id[frozenset(u)], label] = id[frozenset(v)];
 
 	dfaAcceptedState = [];
 	for u in dfaState:
 		for fin in acceptedState:
 			if fin in u:
-				dfaAcceptedState.append(id[u]);
+				dfaAcceptedState.append(id[frozenset(u)]);
 				break;
 
 	g = open('output2.txt', 'w');
+	alphabet.pop();
 	g.write(str(len(dfaState)) + ' ' + str(len(alphabet)) + ' ' + str(len(dfaAcceptedState)) + '\n');
 	g.write(' '.join(map(str, alphabet)) + '\n');
+	g.write(str(id[frozenset(start)]) + '\n');
 	g.write(' '.join(map(str, dfaAcceptedState)) + '\n');
 
 	for u in dfaState:
 		li = [];
+		idu = id[frozenset(u)];
 		for label in alphabet:
-			li.append(dfaTable[u, label]);
+			if label != 'eps':
+				li.append(dfaTable[idu, label]);
 		g.write(' '.join(map(str, li)) + '\n');
 
 	for st in dfaState:
-		g.write(str(id[st]) + ': ' + str(st) + '\n');
+		g.write(str(id[frozenset(st)]) + ': ' + str(st) + '\n');
 	g.close();
 
 """A multi-producer, multi-consumer queue."""
 
+prob1();
