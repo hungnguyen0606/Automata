@@ -16,7 +16,56 @@ def readDFAtable(f):
 		for j in range(m):
 			dfaTable[u, alphabet[j]] = line[j];
 
-	return (allState,  alphabet, startingState, EpsDfaTable, acceptedState)
+	return (allState,  alphabet, startingState, dfaTable, acceptedState)
+
+def readEpsDFAtable(f):
+	n, m, k = map(int, f.readline().split());
+	alphabet = f.readline().split();
+	alphabet.append('eps');
+	allState = f.readline().split();
+	startingState = f.readline().split()[0];
+	acceptedState = f.readline().split();
+
+	EpsDfaTable = dict();
+	for i in range(n):
+		u = f.readline().split()[0];
+		for j in range(m+1):
+			line = f.readline().split();
+			EpsDfaTable[u, alphabet[j]] = [];
+			for k in range(1, int(line[0])+1):
+				EpsDfaTable[u, alphabet[j]].append(line[k]);
+
+	return (allState, alphabet, startingState, EpsDfaTable, acceptedState);
+
+def writeDFAtable(g, allState, alphabet, startingState, dfaTable, acceptedState):
+
+	g.write(str(len(allState)) + ' ' + str(len(alphabet)) + ' ' + str(len(acceptedState)) + '\n');
+	g.write(' '.join(map(str, alphabet)) + '\n');
+	g.write(' '.join(map(str, allState)) + '\n');
+	g.write(str(startingState) + '\n');
+	g.write(' '.join(map(str, acceptedState)) + '\n');
+
+	for u in allState:
+		g.write(str(u) + '\n');
+		g.write(' '.join(map(str, [dfaTable[u, label] for label in alphabet])) + '\n');
+
+def writeEpsDFAtable(g, allState, alphabet, startingState, epsDFAtable, acceptedState):
+	g.write(str(len(allState)) + ' ' + str(len(alphabet)) + ' ' + str(len(acceptedState)) + '\n');
+	g.write(' '.join(map(str, alphabet)) + '\n');
+	g.write(' '.join(map(str, allState)) + '\n');
+	g.write(str(startingState) + '\n');
+	g.write(' '.join(map(str, acceptedState)) + '\n');
+
+	newAlpha = alphabet;
+	newAlpha.append('eps')
+
+	for u in allState:
+		g.write(str(u) + '\n');
+		for label in newAlpha:
+			line = [len(epsDFAtable[u, label])];
+			line.extend([EpsDfaTable[u, label]]);
+			g.write(' '.join(map(str, line)) + '\n')
+
 
 def prob1():
 	#input
@@ -56,24 +105,7 @@ def getClosure(EpsDfaTable, start, label):
 
 	return ret;
 
-def readEpsDFAtable(f):
-	n, m, k = map(int, f.readline().split());
-	alphabet = f.readline().split();
-	alphabet.append('eps');
-	allState = f.readline().split();
-	startingState = f.readline().split()[0];
-	acceptedState = f.readline().split();
 
-	EpsDfaTable = dict();
-	for i in range(n):
-		u = f.readline().split()[0];
-		for j in range(m+1):
-			line = f.readline().split();
-			EpsDfaTable[u, alphabet[j]] = [];
-			for k in range(1, int(line[0])+1):
-				EpsDfaTable[u, alphabet[j]].append(line[k]);
-
-	return (allState, alphabet, startingState, EpsDfaTable, acceptedState);
 
 def prob2():
 	#input
@@ -125,18 +157,12 @@ def prob2():
 
 	g = open('output2.txt', 'w');
 	alphabet.pop();
-	g.write(str(len(dfaState)) + ' ' + str(len(alphabet)) + ' ' + str(len(dfaAcceptedState)) + '\n');
-	g.write(' '.join(map(str, alphabet)) + '\n');
-	g.write(str(id[frozenset(start)]) + '\n');
-	g.write(' '.join(map(str, dfaAcceptedState)) + '\n');
+	newAllState = [id[frozenset(u)] for u in dfaState];
+	newStartingState = id[frozenset(start)];
+	#newDfaTable = dict([((id[frozenset(k[0])], k[1]), dfaTable[k]) for k in dfaTable.keys()]);
 
-	for u in dfaState:
-		li = [];
-		idu = id[frozenset(u)];
-		for label in alphabet:
-			if label != 'eps':
-				li.append(dfaTable[idu, label]);
-		g.write(' '.join(map(str, li)) + '\n');
+
+	writeDFAtable(g, newAllState, alphabet, newStartingState, dfaTable, dfaAcceptedState);
 
 	for st in dfaState:
 		g.write(str(id[frozenset(st)]) + ': ' + str(st) + '\n');
@@ -152,7 +178,7 @@ def prob5():
 	#init
 	newAllState = [];
 	newAlphabet = [];
-	newDfaTable = [];
+	newDfaTable = dict();
 	newAcceptedState = [];
 
 	#remove unreachable node
@@ -164,7 +190,7 @@ def prob5():
 	while len(q) > 0:
 		u = q.pop();
 		for label in alphabet:
-			if EpsDfaTable[u, label] not in isReach == 0:
+			if dfaTable[u, label] not in isReach:
 				q.append(dfaTable[u, label]);
 				isReach.add(dfaTable[u, label])
 	allState = [u for u in isReach];
@@ -175,7 +201,7 @@ def prob5():
 	for u in allState:
 		if u not in acceptedState:
 			for v in acceptedState:
-				tabFil[u, v] = 1
+				tabFil[u, v] = tabFil[v, u] = 1;
 	#---------------------------
 	while True:
 		ok = False;
@@ -183,7 +209,7 @@ def prob5():
 			for v in allState:
 				if u != v:
 					for label in alphabet:
-						if tabFil[dfaTable[u, label], dfaTable[v, label]] == 1:
+						if tabFil[u, v] == 0 and tabFil[dfaTable[u, label], dfaTable[v, label]] == 1:
 							tabFil[u, v] = 1;
 							ok = True;
 							break;
@@ -191,20 +217,30 @@ def prob5():
 			break;
 
 	id = dict();
+	maxID = 0;
 	for i in range(len(allState)):
 		if allState[i] not in id.keys():
-			id[allState[i]] = len(id);
-			for j in range(i+1, allState):
+			id[allState[i]] = maxID;
+			maxID += 1;
+			for j in range(i+1, len(allState)):
 				if tabFil[allState[i], allState[j]] == 0:
 					id[allState[j]] = id[allState[i]];
 	for u in allState:
 		for label in alphabet:
 			newDfaTable[id[u], label] = id[dfaTable[u, label]];
-	
+
 	newStartingState = id[startingState];
 	newAlphabet = alphabet
 	newAcceptedState = np.unique([id[u] for u in acceptedState]).tolist();
 	newAllState = np.unique([id[u] for u in allState]).tolist();
 	#newAcceptedState = [u for u in newAcceptedState]
+	g = open('output5.txt', 'w');
+	# allState, alphabet, startingState, dfaTable, acceptedState):
+	writeDFAtable(g, newAllState, newAlphabet, newStartingState, newDfaTable, newAcceptedState);
 
-prob1();
+	g.write('Description\n');
+	for u in newAllState:
+		g.write(str(u) + ': ' + ' '.join(map(str, [v for v in allState if id[v] == u])) + '\n')
+	g.close();
+
+prob5();
