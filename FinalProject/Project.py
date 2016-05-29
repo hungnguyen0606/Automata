@@ -18,7 +18,7 @@ def readDFAtable(f):
 
 	return (allState,  alphabet, startingState, dfaTable, acceptedState)
 
-def readEpsDFAtable(f):
+def readEpsNFAtable(f):
 	n, m, k = map(int, f.readline().split());
 	alphabet = f.readline().split();
 	alphabet.append('eps');
@@ -26,16 +26,16 @@ def readEpsDFAtable(f):
 	startingState = f.readline().split()[0];
 	acceptedState = f.readline().split();
 
-	EpsDfaTable = dict();
+	EpsNFATable = dict();
 	for i in range(n):
 		u = f.readline().split()[0];
 		for j in range(m+1):
 			line = f.readline().split();
-			EpsDfaTable[u, alphabet[j]] = [];
+			EpsNFATable[u, alphabet[j]] = [];
 			for k in range(1, int(line[0])+1):
-				EpsDfaTable[u, alphabet[j]].append(line[k]);
+				EpsNFATable[u, alphabet[j]].append(line[k]);
 
-	return (allState, alphabet, startingState, EpsDfaTable, acceptedState);
+	return (allState, alphabet, startingState, EpsNFATable, acceptedState);
 
 def writeDFAtable(g, allState, alphabet, startingState, dfaTable, acceptedState):
 
@@ -49,7 +49,7 @@ def writeDFAtable(g, allState, alphabet, startingState, dfaTable, acceptedState)
 		g.write(str(u) + '\n');
 		g.write(' '.join(map(str, [dfaTable[u, label] for label in alphabet])) + '\n');
 
-def writeEpsDFAtable(g, allState, alphabet, startingState, epsDFAtable, acceptedState):
+def writeEpsNFAtable(g, allState, alphabet, startingState, EpsNFAtable, acceptedState):
 	g.write(str(len(allState)) + ' ' + str(len(alphabet)) + ' ' + str(len(acceptedState)) + '\n');
 	g.write(' '.join(map(str, alphabet)) + '\n');
 	g.write(' '.join(map(str, allState)) + '\n');
@@ -62,8 +62,8 @@ def writeEpsDFAtable(g, allState, alphabet, startingState, epsDFAtable, accepted
 	for u in allState:
 		g.write(str(u) + '\n');
 		for label in newAlpha:
-			line = [len(epsDFAtable[u, label])];
-			line.extend([EpsDfaTable[u, label]]);
+			line = [len(EpsNFAtable[u, label])];
+			line.extend([EpsNFATable[u, label]]);
 			g.write(' '.join(map(str, line)) + '\n')
 
 
@@ -90,14 +90,14 @@ def prob1():
 		g.write('Not accepted');
 	g.close();
 
-def getClosure(EpsDfaTable, start, label):
+def getClosure(EpsNFATable, start, label):
 	ret = set([start]);
 	q = deque([start]);
 
 	while len(q) > 0:
 		u = q.pop();
 
-		for v in EpsDfaTable[u, label]:
+		for v in EpsNFATable[u, label]:
 			if v not in ret:
 				q.append(v);
 				ret.add(v);
@@ -111,10 +111,10 @@ def prob2():
 	#input
 	print 'Start to solve 2:';
 	f = open('input2.txt', 'r');
-	allState,  alphabet, startingState, EpsDfaTable, acceptedState = readEpsDFAtable(f);
+	allState,  alphabet, startingState, EpsNFATable, acceptedState = readEpsNFAtable(f);
 	f.close();
 
-	start = getClosure(EpsDfaTable, startingState, 'eps');
+	start = getClosure(EpsNFATable, startingState, 'eps');
 	id = dict();
 	id[frozenset(start)] = 0;
 	dfaState = [start];
@@ -132,11 +132,11 @@ def prob2():
 			v = set();
 			temp = set()
 			for ne in u:
-				temp = temp.union(set(EpsDfaTable[ne, label]));
+				temp = temp.union(set(EpsNFATable[ne, label]));
 			#temp = np.unique(temp).tolist();
 
 			for x in temp:
-				temp1 = getClosure(EpsDfaTable, x, 'eps');
+				temp1 = getClosure(EpsNFATable, x, 'eps');
 				v = v.union(temp1);
 
 			#v = np.unique(v).tolist();
@@ -363,6 +363,103 @@ def prob4_new_28_05_2016__08_02PM():
 	g.write(adj[newStartingState, newEndingState]);
 	g.close();
 
-#prob2();
-prob5()
-#prob4_new_28_05_2016__08_02PM();
+#------------------------------------------------------------------------------
+#(allState, alphabet, startingState, EpsNFATable, acceptedState);
+def makeNFA(ch, alphabet, count):
+	allState = [str(count), str(count+1)];
+	startingState = allState[0];
+	acceptedState = [allState[-1]];
+	newAlphabet = list(alphabet);
+	newAlphabet.append('eps');
+
+	#init transition table
+	EpsNFATable = dict();
+	for u in allState:
+		for label in newAlphabet:
+			EpsNFATable[u, label] = [];
+
+	EpsNFATable[startingState, ch] = allState[-1];
+
+	return ((allState, newAlphabet, startingState, EpsNFATable, acceptedState), count+2)
+	pass
+
+def unionNFA(nfaU, nfaV, count):
+	allState = list(nfaU[0]);
+	allState.extend(nfaV[0]);
+	#create new starting state
+	allState.append(str(count));
+	newAlphabet = list(nfaU[1]);
+	#update transition table
+	EpsNFATable = nfaU[-2].copy();
+	EpsNFATable.update(nfaV[-2]);
+	for label in newAlphabet:
+		EpsNFATable[allState[-1], label] = [];
+	EpsNFATable[allState[-1], 'eps'].extend([nfaU[2], nfaV[2]])
+	
+	acceptedState = list(nfaU[-1]);
+	acceptedState.extend(nfaV[-1]);
+
+	return ((allState, newAlphabet, allState[-1], EpsNFATable, acceptedState), count+1)
+	pass
+
+def repeatNFA(nfaU, count):
+	allState = list(nfaU[0]);
+	allState.extend(nfaV[0]);
+	
+	pass
+
+def concatNFA(nfaU, nfaV, count):
+	pass
+
+def prob3():
+	f = open('input3.txt', 'r');
+	s = f.readline();
+	alphabet = set(f.readline().split());
+	f.close();
+	#initialize
+	priority = {
+		'(': 0,
+		')': 1,
+		'addition': 2,
+		'multiplication': 3,
+		'kneene_star': 4
+	}
+	#
+	q = st = [];
+	count = 0;
+	
+	for ch in s:
+		if ch in alphabet:
+			nfa, count = makeNFA(ch, alphabet, count);
+			q.append(nfa);
+		else:
+			pr = priority[ch];
+			while len(st) > 0 and pr < priority[st[-1]]:
+				oper = st.pop();
+				
+				if oper == 'addition':
+					u = q.pop();
+					v = q.pop();
+					nfa, count = unionNFA(u, v, count);
+					q.append(nfa);
+
+				elif oper == 'multiplication':
+					u = q.pop();
+					v = q.pop();
+					nfa, count = concatNFA(u, v, count);
+					q.append(nfa);
+
+				elif oper == 'kneene_star':
+					u = q.pop();
+					nfa, count = repeatNFA(u, count);
+					q.append(nfa);
+
+			if ch == ')':
+				assert len(st) > 0, 'Invalid expression'
+				assert st[-1] == '(', 'Invalid bracket matching'
+				st.pop();
+
+	
+
+
+
