@@ -141,7 +141,7 @@ def prob2():
 
 			#v = np.unique(v).tolist();
 
-			if (len(v) > 0 and frozenset(v) not in id.keys()):
+			if (frozenset(v) not in id.keys()):
 				id[frozenset(v)] = len(dfaState);
 				q.append(v);
 				dfaState.append(v);
@@ -249,26 +249,35 @@ def prob5():
 
 
 #-------------------------------------------------------------------------
-def pre1(u):
 
-	if u == 'eps' or u == '':
-		return u;
-	return '(' + u + ')';
+def _concat(u, v, opU, opV, op):
+	if op == 'multiplication':
+		newOP = 'empty'
+		if u == '' or v == '':
+			return ('', 'empty');
+		newOP = 'multiplication'
+		if u == 'eps':
+			return (v, opV);
+		if v == 'eps':
+			return (u, opU);
+		if opU == 'addition' and opV == 'addition':
+			return ('(' + u + ')' + '(' + v + ')', 'multiplication');
+		if opU == 'addition' and opV != 'addition':
+			return ('(' + u + ')' + v, 'multiplication') ;
+		if opU != 'addition' and opV == 'addition':
+			return (u + '(' + v + ')', 'multiplication');
+		return (u + v, 'multiplication')
+	else:
+		if u == '' and v == '':
+			return ('', 'empty');
+		if u == '':
+			return (v, opV)
+		if v == '':
+			return (u, opU)
 
-def pre2(u):
-	if u == 'eps':
-		return '';
-	return '(' + u + ')';
-def concat(u, v):
-	if u == '' or v == '':
-		return '';
-	if u == 'eps':
-		return v;
-	if v == 'eps':
-		return u;
-	return '(' + u + ')' + '(' + v + ')';
+		return (u + '+' + v, 'addition')
 
-def prob4():
+def prob4_new_28_05_2016__08_02PM():
 	#def readDFAtable(f):
 	#return (allState,  alphabet, startingState, dfaTable, acceptedState)
 	#input
@@ -278,66 +287,82 @@ def prob4():
 	#-------------------------------------------------------------------
 	#convert to graph
 	adj = dict();
+	lastOperation = dict();
 	for u in allState:
 		for label in alphabet:
 			v = dfaTable[u, label];
 			if (u, v) in adj.keys():
 				adj[u, v] = adj[u, v] + '+' + str(label);
+				lastOperation[u, v] = 'addition'
 			else:
 				adj[u, v] = str(label);
+				lastOperation[u, v] = 'element'
+
+	newStartingState = 'new Starting';
+	newEndingState = 'new Ending';
+
+	for u in acceptedState:
+		adj[u, newEndingState] = 'eps';
+		lastOperation[u, newEndingState] = 'element'
+
+	adj[newStartingState, startingState] = 'eps';
+	lastOperation[newStartingState, startingState] = 'element'
+
+	#adj[newStartingState, newEndingState] = ''
+	#-------------------------------------------------------------------
+	#removing node
+	allState.append(newStartingState);
+	allState.append(newEndingState);
 
 	for u in allState:
 		for v in allState:
 			if (u, v) not in adj.keys():
 				adj[u, v] = '';
-
-	newStartingState = 'new Starting';
-	newEndingState = 'new Ending';
-
-	for u in allState:
-		adj[newStartingState, u] = '';
-		adj[u, newEndingState] = '';
-
-	for u in acceptedState:
-		adj[u, newEndingState] = 'eps';
-
-	adj[newStartingState, startingState] = 'eps';
-	adj[newStartingState, newEndingState] = ''
-	#-------------------------------------------------------------------
-	#removing node
-	allState.append(newStartingState);
-	allState.append(newEndingState);
+				lastOperation[u, v] = 'empty'
 
 	for i in range(len(allState) - 2):
 		mid = allState[i];
 
 		for j in range(i+1, len(allState) - 1):
 			u = allState[j];
+			if adj[u, mid] == '':
+				continue
+
 			for k in range(i+1, len(allState)):
 				v = allState[k];
-				if (u == '5' and v == '6'):
-					x = 12;
+				if adj[mid, v] == '':
+					continue
+				if u == '6' and v == '5':
+					x = 1
+					y = 2
+					z = x + y
 				if v != newStartingState:
 					tt = '';
 					if adj[mid, mid] == '' or adj[mid, mid] == 'eps':
 						tt = 'eps';
 					else:
-						tt = '(' + adj[mid, mid] + ')*';
-					temp = concat(concat(adj[u, mid], tt), adj[mid, v]);
+						if lastOperation[mid, mid] == 'element':
+							tt = adj[mid, mid] + '*';
+						else:
+							tt = '(' + adj[mid, mid] + ')*';
 
+					
+					temp, newOP1 = _concat(adj[u, mid], tt, lastOperation[u, mid], 'multiplication', 'multiplication');
+					temp, newOP2 = _concat(temp, adj[mid, v], newOP1, lastOperation[mid, v], 'multiplication');
 
-					if adj[u, v] == 'eps' and temp == 'eps':
-						adj[u, v] = 'eps';
-					elif adj[u, v] == '' and temp == '':
-						adj[u, v] = '';
-					elif adj[u, v] == '' or temp == '':
-						adj[u, v] = adj[u, v] + temp;
-					else:
-						adj[u, v] = pre1(adj[u, v]) + '+' + pre1(temp);
+					lastOP = ''
+					if tt.find('(0+11*01+00*1)*') != -1 or adj[u,v].find('(0+11*01+00*1)') != -1:
+						x = 123
+						y = 3;
+						z = x+y
+					adj[u, v], lastOperation[u, v] = _concat(adj[u, v], temp, lastOperation[u, v], newOP2, 'addition');
+
 					#adj[u, v] = adj[u, v] + '+' + temp
 
 	g = open('output4.txt', 'w');
 	g.write(adj[newStartingState, newEndingState]);
 	g.close();
 
-prob4();
+#prob2();
+prob5()
+#prob4_new_28_05_2016__08_02PM();

@@ -1,1 +1,1 @@
-((a+b)(a+b))(((a+b)(a+b))*)
+a+b(ab)*aa+(ab+b(ab)*aab)(ab)*(eps+a)+(ab+b(ab)*aab)(ab)*b((aab+ab(ab)*aab)(ab)*b)*(eps+aa+ab(ab)*aa+(aab+ab(ab)*aab)(ab)*(eps+a))+(ab+b(ab)*aab)(ab)*b((aab+ab(ab)*aab)(ab)*b)*bb*
