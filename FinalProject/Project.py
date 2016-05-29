@@ -378,7 +378,7 @@ def makeNFA(ch, alphabet, count):
 		for label in newAlphabet:
 			EpsNFATable[u, label] = [];
 
-	EpsNFATable[startingState, ch] = allState[-1];
+	EpsNFATable[startingState, ch].append(allState[-1]);
 
 	return ((allState, newAlphabet, startingState, EpsNFATable, acceptedState), count+2)
 	pass
@@ -405,10 +405,30 @@ def unionNFA(nfaU, nfaV, count):
 def repeatNFA(nfaU, count):
 	allState = list(nfaU[0]);
 	allState.extend(nfaV[0]);
-	
+	alphabet = list(nfaU[1]);
+	acceptedState = list(nfaU[-1]);
+	startingState = nfaU[2];
+
+	EpsNFATable = nfaU[-2].copy();
+	for u in acceptedState:
+		if startingState not in EpsNFATable[u, 'eps']:
+			EpsNFATable[u, 'eps'].append(startingState);
+
+	return ((allState, alphabet, startingState, EpsNFATable, acceptedState), count);
 	pass
 
 def concatNFA(nfaU, nfaV, count):
+	allState = list(nfaU[0]);
+	allState.extend(nfaV[0]);
+	alphabet = list(nfaU[1]);
+	acceptedState = list(nfaV[-1]);
+
+	EpsNFATable = nfaU[-2].copy();
+	EpsNFATable.update(nfaV[-2]);
+	for u in nfaU[-1]:
+		EpsNFATable[u, 'eps'].append(nfaV[2]);
+
+	return ((allState, alphabet, nfaU[2], EpsNFATable, acceptedState))
 	pass
 
 def prob3():
@@ -418,48 +438,58 @@ def prob3():
 	f.close();
 	#initialize
 	priority = {
+		'~': -1,  #ending character
 		'(': 0,
 		')': 1,
-		'addition': 2,
-		'multiplication': 3,
-		'kneene_star': 4
+		'+': 2,   #union
+		'.': 3,   #concat
+		'*': 4,   #kleene star
 	}
 	#
+	s = s + '~'
 	q = st = [];
 	count = 0;
 	
 	for ch in s:
+		_nfa = None
 		if ch in alphabet:
-			nfa, count = makeNFA(ch, alphabet, count);
+			_nfa, count = makeNFA(ch, alphabet, count);
+			ch = '.'
+
+		pr = priority[ch];
+		while len(st) > 0 and pr < priority[st[-1]]:
+			oper = st.pop();
+			
+			if oper == '+':
+				assert len(q) > 1, 'Invalid expression - not have enough operands'
+				u = q.pop();
+				v = q.pop();
+				nfa, count = unionNFA(u, v, count);
+				q.append(nfa);
+
+			elif oper == '.':
+				assert len(q) > 1, 'Invalid expression - not have enough operands'
+				u = q.pop();
+				v = q.pop();
+				nfa, count = concatNFA(u, v, count);
+				q.append(nfa);
+
+			elif oper == '*':
+				assert len(q) > 0, 'Invalid expression - not have enough operands'
+				u = q.pop();
+				nfa, count = repeatNFA(u, count);
+				q.append(nfa);
+
+		if ch == ')':
+			assert len(st) > 0, 'Invalid expression'
+			assert st[-1] == '(', 'Invalid bracket matching'
+			st.pop();
+
+		st.append(ch);
+
+		if _nfa is not None:
 			q.append(nfa);
-		else:
-			pr = priority[ch];
-			while len(st) > 0 and pr < priority[st[-1]]:
-				oper = st.pop();
-				
-				if oper == 'addition':
-					u = q.pop();
-					v = q.pop();
-					nfa, count = unionNFA(u, v, count);
-					q.append(nfa);
-
-				elif oper == 'multiplication':
-					u = q.pop();
-					v = q.pop();
-					nfa, count = concatNFA(u, v, count);
-					q.append(nfa);
-
-				elif oper == 'kneene_star':
-					u = q.pop();
-					nfa, count = repeatNFA(u, count);
-					q.append(nfa);
-
-			if ch == ')':
-				assert len(st) > 0, 'Invalid expression'
-				assert st[-1] == '(', 'Invalid bracket matching'
-				st.pop();
 
 	
-
 
 
