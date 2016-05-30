@@ -6,6 +6,7 @@ import Project_02
 import Project_03
 import Project_04
 import Project_05
+import Project_06
 
 from collections import deque
 from SDK import EPS
@@ -80,11 +81,11 @@ def prob4(input, output):
 	f = open(input, 'r');
 	myDFA = SDK.readDFAtable(f);
 	f.close();
-	#-------------------------------------------------------------------
+	
 	s = Project_04.DfaToRE(myDFA);
+	
 	g = open(output, 'w');
 	g.write(s);
-
 	g.close();
 
 #------------------------------------------------------------------------------
@@ -95,14 +96,25 @@ def prob3(input, output):
 	f = open(input, 'r');
 	alphabet = set(f.readline().split());
 	s = f.readline();
-
 	f.close();
-	#initialize
+	
 	DFA = Project_03.ReToDFA(s, alphabet);
 
 	g = open(output, 'w')
 	SDK.writeDFAtable(g, DFA);
 	g.close();
 
-prob3('input3.txt', 'output3.txt');
+def prob6(input, output):
+	f = open(input, 'r');
+	choice = int(f.readline());
+	if choice == 0:
+		FA = SDK.readDFAtable(f);
+		Project_06.drawDFA(FA)
+	else:
+		FA = SDK.readEpsNFAtable(f);
+		Project_06.drawNFA(FA)
+	f.close();
 
+
+#prob3('input3.txt', 'output3.txt')
+prob6('input5.txt', 'output66.txt')

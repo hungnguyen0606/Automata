@@ -1,2 +1,2 @@
 a b
-(ab+ba)(abb + bba)
+a+b(ab)*aa+(ab+b(ab)*aab)(ab)*(E+a)+(ab+b(ab)*aab)(ab)*b((aab+ab(ab)*aab)(ab)*b)*(E+aa+ab(ab)*aa+(aab+ab(ab)*aab)(ab)*(E+a))+(ab+b(ab)*aab)(ab)*b((aab+ab(ab)*aab)(ab)*b)*bb*
