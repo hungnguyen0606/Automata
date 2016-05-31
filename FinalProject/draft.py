@@ -1,3 +1,18 @@
+# prob 2:
+	
+# 	g.write(str(len(dfaState)) + ' ' + str(len(alphabet)) + ' ' + str(len(dfaAcceptedState)) + '\n');
+# 	g.write(' '.join(map(str, alphabet)) + '\n');
+# 	g.write(str(id[frozenset(start)]) + '\n');
+# 	g.write(' '.join(map(str, dfaAcceptedState)) + '\n');
+
+# 	for u in dfaState:
+# 		li = [];
+# 		idu = id[frozenset(u)];
+# 		for label in alphabet:
+# 			if label != 'eps':
+# 				li.append(dfaTable[idu, label]);
+# 		g.write(' '.join(map(str, li)) + '\n');
+
 def pre1(u):
 
 	if u == 'eps' or u == '':

@@ -1,8 +1,9 @@
 from collections import deque
 import numpy as np
+import copy
 
 def reduceDFA(DFA):
-	allState, alphabet, startingState, dfaTable, acceptedState = DFA;
+	allState, alphabet, startingState, dfaTable, acceptedState = copy.deepcopy(DFA);
 
 	newAllState = [];
 	newAlphabet = [];

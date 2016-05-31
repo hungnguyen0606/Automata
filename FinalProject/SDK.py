@@ -18,7 +18,7 @@ def readDFAtable(f):
 def readEpsNFAtable(f):
 	n, m, k = map(int, f.readline().split());
 	alphabet = f.readline().split();
-	alphabet.append('eps');
+	alphabet.append(EPS);
 	allState = f.readline().split();
 	startingState = f.readline().split()[0];
 	acceptedState = f.readline().split();

@@ -81,9 +81,9 @@ def prob4(input, output):
 	f = open(input, 'r');
 	myDFA = SDK.readDFAtable(f);
 	f.close();
-	
+
 	s = Project_04.DfaToRE(myDFA);
-	
+
 	g = open(output, 'w');
 	g.write(s);
 	g.close();
@@ -97,7 +97,7 @@ def prob3(input, output):
 	alphabet = set(f.readline().split());
 	s = f.readline();
 	f.close();
-	
+
 	DFA = Project_03.ReToDFA(s, alphabet);
 
 	g = open(output, 'w')
@@ -116,5 +116,22 @@ def prob6(input, output):
 	f.close();
 
 
+#-testing----------------------------------------------
 #prob3('input3.txt', 'output3.txt')
-prob6('input2.txt', 'output66.txt')
+prob2('input2.txt', 'output2.txt')
+f = open('output2.txt', 'r');
+dfa = SDK.readDFAtable(f)
+f.close();
+
+mydfa = Project_03.ReToDFA(Project_04.DfaToRE(dfa), set(['a','b']));
+Project_06.drawDFA(dfa, 'dfa')
+
+f = open('input2.txt', 'r')
+nfa = SDK.readEpsNFAtable(f);
+f.close();
+
+Project_06.drawNFA(nfa, 'nfa');
+
+Project_06.drawDFA(mydfa, 'compare')
+
+x = 12

@@ -1,5 +1,6 @@
 from collections import deque
 from SDK import EPS
+import copy
 def getClosure(EpsNFATable, start, label):
 	ret = set([start]);
 	q = deque([start]);
@@ -16,7 +17,7 @@ def getClosure(EpsNFATable, start, label):
 	return ret;
 
 def NfaToDfa(myNFA):
-	allState,  alphabet, startingState, EpsNFATable, acceptedState = myNFA;
+	allState,  alphabet, startingState, EpsNFATable, acceptedState = copy.deepcopy(myNFA);
 	start = getClosure(EpsNFATable, startingState, EPS);
 	id = dict();
 	id[frozenset(start)] = 0;

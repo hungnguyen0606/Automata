@@ -1,8 +1,9 @@
 from graphviz import Digraph
 from SDK import EPS
+import copy
 #'dot', 'neato', 'twopi', 'circo', 'fdp', 'sfdp', 'patchwork', 'osage',
-def drawDFA(DFA):
-	allState, alphabet, startingState, dfaTable, acceptedState = DFA;
+def drawDFA(DFA, output):
+	allState, alphabet, startingState, dfaTable, acceptedState = copy.deepcopy(DFA);
 	sigma = ', '.join(alphabet)
 
 	adj = dict()
@@ -19,7 +20,7 @@ def drawDFA(DFA):
 			else:
 				adj[u, v] = label
 
-	draw(DFA, adj);
+	draw(DFA, adj, output);
 	# gr.attr('node', style = 'invis');
 	# gr.node('myStarting');
 	
@@ -43,8 +44,8 @@ def drawDFA(DFA):
 	# gr.render('DFA', view = True)
 	pass
 
-def drawNFA(NFA):
-	allState, alphabet, startingState, nfaTable, acceptedState = NFA;
+def drawNFA(NFA, output):
+	allState, alphabet, startingState, nfaTable, acceptedState = copy.deepcopy(NFA);
 	adj = dict();
 	for u in allState:
 		for label in alphabet:
@@ -56,11 +57,11 @@ def drawNFA(NFA):
 				else:
 					adj[u, v] = label;
 
-	draw(NFA, adj);
+	draw(NFA, adj, output);
 	pass
 
 #allState, alphabet, startingState, faTable, acceptedState
-def draw(FA, adj):
+def draw(FA, adj, output):
 	newAlpha = list(FA[1])
 	if newAlpha[-1] == EPS:
 		newAlpha.pop();
@@ -74,19 +75,19 @@ def draw(FA, adj):
 	
 	gr.attr('node', style = '', shape = 'doublecircle');
 	for u in FA[-1]:
-		gr.node(u);
+		gr.node(str(u));
 	
 	gr.attr('node', shape = 'circle');
 	for u in FA[0]:
 		if u not in FA[-1]:
-			gr.node(u)
+			gr.node(str(u))
 	
-	gr.edge('myStarting', FA[2], 'Start');
+	gr.edge('myStarting', str(FA[2]), 'Start');
 	for u, v in adj.keys():
 		if adj[u, v] == sigma:
-			gr.edge(u, v, 'Sigma')
+			gr.edge(str(u), str(v), 'Sigma')
 		else:
-			gr.edge(u, v, adj[u, v])
+			gr.edge(str(u), str(v), adj[u, v])
 
-	gr.render('DFA', view = True);
+	gr.render(output, view = True);
 

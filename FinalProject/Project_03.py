@@ -1,6 +1,7 @@
 from SDK import EPS
 import Project_02
 import Project_05
+import copy
 
 def makeNFA(ch, alphabet, count):
 	allState = [str(count), str(count+1)];

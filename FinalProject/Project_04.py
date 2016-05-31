@@ -1,4 +1,5 @@
 from SDK import EPS
+import copy
 def _concat(u, v, opU, opV, op):
 	if op == 'multiplication':
 		newOP = 'empty'
@@ -27,7 +28,7 @@ def _concat(u, v, opU, opV, op):
 		return (u + '+' + v, 'addition')
 
 def DfaToRE(DFA):
-	allState,  alphabet, startingState, dfaTable, acceptedState = DFA;
+	allState,  alphabet, startingState, dfaTable, acceptedState = copy.deepcopy(DFA);
 	#convert to graph
 	adj = dict();
 	lastOperation = dict();
