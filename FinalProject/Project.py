@@ -117,4 +117,4 @@ def prob6(input, output):
 
 
 #prob3('input3.txt', 'output3.txt')
-prob6('input5.txt', 'output66.txt')
+prob6('input2.txt', 'output66.txt')
