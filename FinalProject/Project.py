@@ -1,4 +1,4 @@
-import networkx as nx
+import sys
 import numpy as np
 import SDK
 import Project_01
@@ -13,7 +13,6 @@ from SDK import EPS
 
 def prob1(input, output):
 	#input
-	print 'Start to solve 1:';
 	f = open(input, 'r');
 	myDFA = SDK.readDFAtable(f);
 	str = f.readline();
@@ -30,7 +29,6 @@ def prob1(input, output):
 
 def prob2(input, output):
 	#input
-	print 'Start to solve 2:';
 	f = open(input, 'r');
 
 	myNFA = SDK.readEpsNFAtable(f);
@@ -51,7 +49,6 @@ def prob2(input, output):
 #------------------------------------------------------------------------------------------
 def prob5(input, output):
 	#input
-	print 'Start to solve 5:';
 	f = open(input, 'r');
 	#allState, alphabet, startingState, dfaTable, acceptedState
 	myDFA = SDK.readDFAtable(f);
@@ -109,29 +106,33 @@ def prob6(input, output):
 	choice = int(f.readline());
 	if choice == 0:
 		FA = SDK.readDFAtable(f);
-		Project_06.drawDFA(FA)
+		Project_06.drawDFA(FA, output)
 	else:
 		FA = SDK.readEpsNFAtable(f);
-		Project_06.drawNFA(FA)
+		Project_06.drawNFA(FA, output)
 	f.close();
 
+def exitProgram():
+	sys.exit();
 
-#-testing----------------------------------------------
-#prob3('input3.txt', 'output3.txt')
-prob2('input2.txt', 'output2.txt')
-f = open('output2.txt', 'r');
-dfa = SDK.readDFAtable(f)
-f.close();
+def main():
+	li = [('{}/ Emulate DFA.', prob1), ('{}/ Convert eps-NFA into DFA.', prob2), ('{}/ Convert Regular Expression into DFA.', prob3), ('{}/ Convert DFA into RE.', prob4), ('{}/ Minimize DFA.', prob5), ('{}/ Draw DFA & NFA.', prob6) , ('{}/ Exit', exitProgram)]
+	
+	menu = '\n'.join([li[i][0].format(i) for i in range(len(li))])
+	while(True):
+		for i, s in enumerate(li):
+			print menu
+			print 'Your choice: '
+			choice = int(raw_input())
 
-mydfa = Project_03.ReToDFA(Project_04.DfaToRE(dfa), set(['a','b']));
-Project_06.drawDFA(dfa, 'dfa')
+			if choice != len(li)-1:
+				print 'Enter your input file: '
+				inp = raw_input();
+				print 'Enter your output file: '
+				out = raw_input();
+				print 'Running...';
+				li[choice][1](inp, out);
+				print 'Finished.'
 
-f = open('input2.txt', 'r')
-nfa = SDK.readEpsNFAtable(f);
-f.close();
-
-Project_06.drawNFA(nfa, 'nfa');
-
-Project_06.drawDFA(mydfa, 'compare')
-
-x = 12
+if __name__ == '__main__':
+    main()
